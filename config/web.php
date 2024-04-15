@@ -64,9 +64,12 @@ $config = [
             'showScriptName' => false,
             'enableStrictParsing' => true,
             'rules' => [
-                ['class' => UrlRule::class, 'controller' => 'product'], //'pluralize' => false
-                ['class' => UrlRule::class, 'controller' => 'member'],
-                ['class' => UrlRule::class, 'controller' => 'book'],
+                ['class' => UrlRule::class, 'controller' => 'product',
+                'extraPatterns' => [
+                    'GET page/<page>' => 'pagination',
+                ]
+
+            ], //'pluralize' => false
                 ['class' => 'yii\rest\UrlRule', 'controller' => 'user'],
                 // [
                 //     'class' => UrlRule::class,
@@ -76,9 +79,6 @@ $config = [
                 //         'POST logout' => 'logout',
                 //     ]
                 // ],
-
-                'GET loans' => 'index',
-                'POST loans' => 'borrow',
             ],
         ],
         'authManager' => [
