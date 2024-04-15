@@ -3,7 +3,7 @@
 namespace app\controllers;
 
 use app\models\Product;
-use yii\data\ActiveDataProvider;
+use Yii;
 use yii\data\Pagination;
 
 class ProductController extends \yii\rest\ActiveController
@@ -18,31 +18,64 @@ class ProductController extends \yii\rest\ActiveController
         return 'product';
     }
 
-    /* public function actions()
+    public function actions()
     {
         $actions = parent::actions();
-        unset($actions['index']); // Desactiva la acción de listado automático
+        unset($actions['index']);
         return $actions;
-    } */
+    }
+
+    public function actionIndex()
+    {
+        $myRequest = Yii::$app->getRequest();
+
+        $query = Product::find()
+            //->joinWith('user', true, 'INNER JOIN')
+            //->joinWith('user')
+            ->with(['user']);
+
+        if ($myRequest->getQueryParam('user_id')) {
+            $userIdParam = $myRequest->getQueryParam('user_id');
+            $query->where(['user_id' => $userIdParam]);
+        }
+
+        $r = $query->all();
+
+        foreach ($r as $k => $v) {
+            $r[$k]['user_id'] = $v->user;
+        }
+
+        return $r;
+    }
 
     public function actionPagination()
     {
-        //preparing the query
-        $query = Product::find();
-        // get the total number of users
+
+        $query = Product::find()->with('user');
         $count = $query->count();
-        //creating the pagination object
         $pagination = new Pagination(['totalCount' => $count, 'defaultPageSize' => 10]);
-        //limit the query using the pagination and retrieve the users
-        $models = $query->offset($pagination->offset)
-            ->limit($pagination->limit)
-            ->all();
+
+        $query = $query->offset($pagination->offset)
+            ->limit($pagination->limit);
+
+        $myRequest = Yii::$app->getRequest();
+
+        if ($myRequest->getQueryParam('user_id')) {
+            $userIdParam = $myRequest->getQueryParam('user_id');
+            $query->where(['user_id' => $userIdParam]);
+        }
+
+        $r = $query->all();
+
+        foreach ($r as $k => $v) {
+            $r[$k]['user_id'] = $v->user; 
+        }
         return [
             'pagination' => $pagination,
             'links' => $pagination->links,
             'totalCount' => $pagination->totalCount,
-            'defaultPageSize'=> $pagination->defaultPageSize,
-            'items' => $models,
+            'defaultPageSize' => $pagination->defaultPageSize,
+            'items' => $r,
             //totalCount
         ];
     }

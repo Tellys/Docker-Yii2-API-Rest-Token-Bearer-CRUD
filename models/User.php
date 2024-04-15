@@ -49,7 +49,7 @@ class User extends \yii\db\ActiveRecord
 
         return [
             [['name', 'ssn', 'email', 'password_hash'], 'required'],
-            [['ssn', 'address_num', 'zip_code'], 'integer'],
+            [['ssn', 'address_num', 'zip_code'], 'integer', ],
             [['cell_phone_verified_at', 'email_verified_at'], 'safe'],
             [['name', 'sexo', 'image', 'address', 'address_neighborhood', 'address_complement', 'city', 'state', 'cell_phone', 'email', 'password_hash'], 'string', 'max' => 255],
             [['auth_key'], 'string', 'max' => 32],
@@ -58,7 +58,7 @@ class User extends \yii\db\ActiveRecord
             [['email'], 'unique'],
             [['email'], 'email'],
             [['ssn'], CpfValidator::class],
-            [['cell_phone'], PhoneValidator::class],
+            [['cell_phone'], PhoneValidator::class, 'skipOnEmpty'=>true],
             [['image'], 'url'],
         ];
     }

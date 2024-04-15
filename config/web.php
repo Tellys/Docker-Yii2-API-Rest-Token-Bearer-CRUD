@@ -64,13 +64,26 @@ $config = [
             'showScriptName' => false,
             'enableStrictParsing' => true,
             'rules' => [
-                ['class' => UrlRule::class, 'controller' => 'product',
-                'extraPatterns' => [
-                    'GET page/<page>' => 'pagination',
-                ]
+                [
+                    'class' => UrlRule::class, 'controller' => 'product',
+                    // 'tokens' => [
+                    //     '{id}' => '<id:\\w+>',
+                    //     '{type}'=>'<type:\\w+>'
+                    // ],
+                    // 'extraPatterns' => [
+                    //     'POST {id}/image/{type}' => 'image',
+                    // ]
+                    'extraPatterns' => [
+                        'GET page/<page>' => 'pagination',
+                    ]
 
-            ], //'pluralize' => false
-                ['class' => 'yii\rest\UrlRule', 'controller' => 'user'],
+                ], //'pluralize' => false
+                [
+                    'class' => 'yii\rest\UrlRule', 'controller' => 'user',
+                    'extraPatterns' => [
+                        'GET page/<page>' => 'pagination',
+                    ]
+                ],
                 // [
                 //     'class' => UrlRule::class,
                 //     'controller' => 'auth',
