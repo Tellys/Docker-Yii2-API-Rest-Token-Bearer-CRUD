@@ -18,6 +18,16 @@ class ProductController extends \yii\rest\ActiveController
         return 'product';
     }
 
+    // public function behaviors()
+    // {
+    //     return [
+    //         'bearerAuth' => [
+    //             'class' => \yii\filters\auth\HttpBearerAuth::class,
+    //             'except' => ['login'], // Permitir el acceso sin autenticación a la acción de inicio de sesión
+    //         ],
+    //     ];
+    // }
+
     public function actions()
     {
         $actions = parent::actions();

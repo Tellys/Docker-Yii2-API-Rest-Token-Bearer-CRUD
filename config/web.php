@@ -84,14 +84,13 @@ $config = [
                         'GET page/<page>' => 'pagination',
                     ]
                 ],
-                // [
-                //     'class' => UrlRule::class,
-                //     'controller' => 'auth',
-                //     'extraPatterns' => [
-                //         'POST login' => 'login',
-                //         'POST logout' => 'logout',
-                //     ]
-                // ],
+                [
+                    'class' => 'yii\rest\UrlRule', 'controller' => 'auth', 'pluralize' => false,
+                    'extraPatterns' => [
+                        'POST login' => 'login',
+                        'GET logout' => 'logout',
+                    ]
+                ],
             ],
         ],
         'authManager' => [

@@ -4,6 +4,7 @@ namespace app\models;
 
 use floor12\phone\PhoneValidator;
 use Yii;
+use yii\web\IdentityInterface;
 use yiibr\brvalidator\CpfValidator;
 
 /**
@@ -30,7 +31,7 @@ use yiibr\brvalidator\CpfValidator;
  *
  * @property Product[] $products
  */
-class User extends \yii\db\ActiveRecord
+class User extends \yii\db\ActiveRecord implements IdentityInterface
 {
     /**
      * {@inheritdoc}
@@ -49,7 +50,7 @@ class User extends \yii\db\ActiveRecord
 
         return [
             [['name', 'ssn', 'email', 'password_hash'], 'required'],
-            [['ssn', 'address_num', 'zip_code'], 'integer', ],
+            [['ssn', 'address_num', 'zip_code'], 'integer',],
             [['cell_phone_verified_at', 'email_verified_at'], 'safe'],
             [['name', 'sexo', 'image', 'address', 'address_neighborhood', 'address_complement', 'city', 'state', 'cell_phone', 'email', 'password_hash'], 'string', 'max' => 255],
             [['auth_key'], 'string', 'max' => 32],
@@ -58,7 +59,7 @@ class User extends \yii\db\ActiveRecord
             [['email'], 'unique'],
             [['email'], 'email'],
             [['ssn'], CpfValidator::class],
-            [['cell_phone'], PhoneValidator::class, 'skipOnEmpty'=>true],
+            [['cell_phone'], PhoneValidator::class, 'skipOnEmpty' => true],
             [['image'], 'url'],
         ];
     }
@@ -107,5 +108,69 @@ class User extends \yii\db\ActiveRecord
     public static function find()
     {
         return new UserQuery(get_called_class());
+    }
+
+    public static function findIdentity($id)
+    {
+        return static::findOne($id);
+    }
+
+    public static function findIdentityByAccessToken($token, $type = null)
+    {
+        return static::findOne(['auth_key' => $token]);
+    }
+
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    public function getAuthKey()
+    {
+        return $this->auth_key;
+    }
+
+    public function validateAuthKey($authKey)
+    {
+        return $this->auth_key === $authKey;
+    }
+
+    public static function findByUserEmail($userEmail)
+    {
+        return static::findOne(['email' => $userEmail]);
+    }
+
+    public function validatePassword($password)
+    {
+        return Yii::$app->security->validatePassword($password, $this->password_hash);
+    }
+
+    public function generate($user)
+    {
+        $date = date('Y-m-d H:i:s');
+
+        $token = new PersonalAccessTtoken();
+        $token->user_id = $user->id;
+        $token->tokenable_type = 'App\Models\User';
+        $token->tokenable_id = 1;
+        $token->token = Yii::$app->security->generateRandomString();
+        $token->abilities = '["*"]';
+        $token->last_used_at = $date;
+        $token->expires_at = date('Y-m-d H:i:s', strtotime('+60 minutes'));
+        $token->created_at = $date;
+        //$token->updated_at = null;
+        return $token->save();
+    }
+
+    public function kill($user)
+    {
+        $date = date('Y-m-d H:i:s');
+
+        $token = (new PersonalAccessTtoken())::find()->where(['id' => $user->id])->one();
+        $token->last_used_at = $date;
+        $token->expires_at = $date;
+        $token->created_at = $date;
+        //$token->updated_at = null;
+        return $token->save();
     }
 }
