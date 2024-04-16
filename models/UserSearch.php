@@ -18,7 +18,7 @@ class UserSearch extends User
     {
         return [
             [['id', 'ssn', 'address_num', 'zip_code'], 'integer'],
-            [['name', 'sexo', 'image', 'address', 'address_neighborhood', 'address_complement', 'city', 'state', 'cell_phone', 'cell_phone_verified_at', 'email', 'email_verified_at', 'password_hash', 'auth_key'], 'safe'],
+            [['username', 'sexo', 'image', 'address', 'address_neighborhood', 'address_complement', 'city', 'state', 'cell_phone', 'cell_phone_verified_at', 'email', 'email_verified_at', 'password_hash', 'auth_key'], 'safe'],
         ];
     }
 
@@ -66,7 +66,7 @@ class UserSearch extends User
             'email_verified_at' => $this->email_verified_at,
         ]);
 
-        $query->andFilterWhere(['like', 'name', $this->name])
+        $query->andFilterWhere(['like', 'username', $this->name])
             ->andFilterWhere(['like', 'sexo', $this->sexo])
             ->andFilterWhere(['like', 'image', $this->image])
             ->andFilterWhere(['like', 'address', $this->address])

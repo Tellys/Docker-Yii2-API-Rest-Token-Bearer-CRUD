@@ -2,9 +2,11 @@
 
 namespace app\controllers;
 
+use app\filters\BearerAuth;
 use app\models\Product;
 use Yii;
 use yii\data\Pagination;
+use yii\web\Response;
 
 class ProductController extends \yii\rest\ActiveController
 {
@@ -18,25 +20,29 @@ class ProductController extends \yii\rest\ActiveController
         return 'product';
     }
 
-    // public function behaviors()
-    // {
-    //     return [
-    //         'bearerAuth' => [
-    //             'class' => \yii\filters\auth\HttpBearerAuth::class,
-    //             'except' => ['login'], // Permitir el acceso sin autenticación a la acción de inicio de sesión
-    //         ],
-    //     ];
-    // }
+    public function behaviors()
+    {
+        $behaviors = parent::behaviors();
+
+        // Aplicar el filtro de autenticación BearerAuth a todas las acciones del controlador
+        $behaviors['authenticator'] = [
+            'class' => BearerAuth::class,
+            //'except' => ['login'],
+        ];
+
+        return $behaviors;
+    }
 
     public function actions()
     {
         $actions = parent::actions();
-        unset($actions['index']);
+        unset($actions['index'], $actions['delete']);
         return $actions;
     }
 
     public function actionIndex()
     {
+        Yii::$app->user->enableSession = false;
         $myRequest = Yii::$app->getRequest();
 
         $query = Product::find()
@@ -60,6 +66,7 @@ class ProductController extends \yii\rest\ActiveController
 
     public function actionPagination()
     {
+        Yii::$app->user->enableSession = false;
 
         $query = Product::find()->with('user');
         $count = $query->count();
@@ -78,7 +85,7 @@ class ProductController extends \yii\rest\ActiveController
         $r = $query->all();
 
         foreach ($r as $k => $v) {
-            $r[$k]['user_id'] = $v->user; 
+            $r[$k]['user_id'] = $v->user;
         }
         return [
             'pagination' => $pagination,
@@ -86,7 +93,17 @@ class ProductController extends \yii\rest\ActiveController
             'totalCount' => $pagination->totalCount,
             'defaultPageSize' => $pagination->defaultPageSize,
             'items' => $r,
-            //totalCount
         ];
+    }
+
+    public function actionDelete($id)
+    {
+        try {
+            return Product::findOne($id)->delete();
+        } catch (\Throwable $th) {
+            Yii::$app->response->statusCode = 401;
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return $th;
+        }
     }
 }

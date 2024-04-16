@@ -2,7 +2,7 @@
 
 namespace app\controllers;
 
-use app\models\PersonalAccessTtoken;
+use app\models\PersonalAccessToken;
 use Yii;
 use app\models\User;
 use yii\rest\Controller;
@@ -17,64 +17,58 @@ class AuthController extends Controller
         return $actions;
     }
 
-    public function actionIndex(){
-        return ['fun index'=> true];
+    public function actionIndex()
+    {
+        return ['fun index' => true];
     }
 
 
     public function actionLogin()
     {
-        $email = Yii::$app->request->post('email');
-        $password = Yii::$app->request->post('password');
+        try {
+            $email = Yii::$app->request->post('email');
+            $password = Yii::$app->request->post('password');
 
-        $user = User::findOne(['email' => $email]);
-        if ($user && $user->validatePassword($password)) {
-            
-            $token = new PersonalAccessTtokenController();
-            $token->generate($user);
+            $user = User::findOne(['email' => $email]);
 
-            var_dump($token);
-            return;
-            
-            //$token = Yii::$app->security->generateRandomString();
+            if (!$user->validatePassword($password)) {
+                throw new \Exception('Invalid User or Password');
+            }
+
+            Yii::$app->user->login($user);
+
+            $token = PersonalAccessToken::generate($user);
+
             $user->auth_key = $token->token;
-            $user->save();
+            $user->save(false);
 
-            return ['token' => $token->token];
-        } else {
+            $r = $token->toArray();
+            unset($r['id']);
+            $r['token'] = 'Bearer:' . $token->id . '|' . $token->token;
+
+            PersonalAccessToken::isValidToken($r['token']);
+
             Yii::$app->response->format = Response::FORMAT_JSON;
-            return ['error' => 'Correo electrónico o contraseña incorrectos'];
+            return ['data' => $r];
+        } catch (\Throwable $e) {
+            Yii::$app->response->statusCode = 401;
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return ['error' => ['Unauthorized', $e]];
         }
     }
 
     public function actionLogout()
     {
-        $user = Yii::$app->user->identity;
-        if ($user !== null) {
-            
-            $token = new PersonalAccessTtokenController();
-            $token->kill($user);
-            
-            $user->access_token = null;
-            $user->save();
-        }
-
         Yii::$app->response->format = Response::FORMAT_JSON;
-        return ['message' => 'Sesión cerrada exitosamente'];
+
+        if (!PersonalAccessToken::kill()) {
+            return ['success' => 'No user Logged to a logout'];
+        }
+        return ['succeess' => 'User logout'];
     }
 
-    // public function actionRefreshToken(){
-    // $user = User::find()->where(['refreshToken' => $this->request->getBodyParam('refreshToken'))->one();
-    // $user->oldAccessToken = $user->accessToken;
-    // $user->refreshToken = build a new token;
-    // $user->accessToken = build a new token;
-
-    // // save your user
-
-    // // return both tokens
-    // return [
-    //      'accessToken' => $user->accessToken,
-    //      'refreshToken' => $user->refreshToken
-    // ];
-    // }
+    public function actionRefreshToken()
+    {
+        return ['succeess' => 'Not develop'];
+    }
 }

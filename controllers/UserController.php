@@ -2,8 +2,11 @@
 
 namespace app\controllers;
 
+use app\filters\BearerAuth;
 use app\models\User;
+use Yii;
 use yii\data\Pagination;
+use yii\web\Response;
 
 class UserController extends \yii\rest\ActiveController
 {
@@ -15,6 +18,24 @@ class UserController extends \yii\rest\ActiveController
     public static function tableName()
     {
         return 'user';
+    }
+
+    public function behaviors()
+    {
+        $behaviors = parent::behaviors();
+        $behaviors['authenticator'] = [
+            'class' => BearerAuth::class,
+            //'except' => ['login'],
+        ];
+
+        return $behaviors;
+    }
+
+    public function actions()
+    {
+        $actions = parent::actions();
+        unset($actions['delete']);
+        return $actions;
     }
 
     public function actionPagination()
@@ -37,5 +58,16 @@ class UserController extends \yii\rest\ActiveController
             'items' => $r,
             //totalCount
         ];
+    }
+
+    public function actionDelete($id)
+    {
+        try {
+            return User::findOne($id)->delete();
+        } catch (\Throwable $th) {
+            Yii::$app->response->statusCode = 401;
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return $th;
+        }
     }
 }

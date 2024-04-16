@@ -19,11 +19,9 @@ $config = [
     ],
     'components' => [
         'request' => [
-            // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'EnhDsTbWG9WRuN7ZOtfpwJ1iwnJT3stH',
             'csrfParam' => '_csrf-frontend',
             'parsers' => [
-                //'application/json' => JsonParser::class
                 'application/json' => 'yii\web\JsonParser',
             ]
         ],
@@ -100,8 +98,6 @@ $config = [
     'params' => $params,
 
 ];
-
-//define('YII_ENV', 'dev');
 
 if (YII_ENV_DEV) {
     // configuration adjustments for 'dev' environment

@@ -11,7 +11,7 @@ use yiibr\brvalidator\CpfValidator;
  * This is the model class for table "user".
  *
  * @property int $id
- * @property string $name
+ * @property string $username
  * @property string|null $sexo
  * @property string|null $image
  * @property int $ssn
@@ -49,16 +49,16 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
         //Yii::setPathOfAlias('brval', Yii::getPathOfAlias('vendor.igorsantos07.yii-br-validators');
 
         return [
-            [['name', 'ssn', 'email', 'password_hash'], 'required'],
+            [['username', 'ssn', 'email', 'password_hash'], 'required'],
             [['ssn', 'address_num', 'zip_code'], 'integer',],
             [['cell_phone_verified_at', 'email_verified_at'], 'safe'],
-            [['name', 'sexo', 'image', 'address', 'address_neighborhood', 'address_complement', 'city', 'state', 'cell_phone', 'email', 'password_hash'], 'string', 'max' => 255],
+            [['username', 'sexo', 'image', 'address', 'address_neighborhood', 'address_complement', 'city', 'state', 'cell_phone', 'email', 'password_hash'], 'string', 'max' => 255, 'skipOnEmpty' => true],
             [['auth_key'], 'string', 'max' => 32],
-            [['name'], 'unique'],
+            [['username'], 'unique'],
             [['ssn'], 'unique'],
             [['email'], 'unique'],
             [['email'], 'email'],
-            [['ssn'], CpfValidator::class],
+            [['ssn'], CpfValidator::class, 'skipOnEmpty' => true],
             [['cell_phone'], PhoneValidator::class, 'skipOnEmpty' => true],
             [['image'], 'url'],
         ];
@@ -71,7 +71,7 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
     {
         return [
             'id' => 'ID',
-            'name' => 'Name',
+            'username' => 'Name',
             'sexo' => 'Sexo',
             'image' => 'Image',
             'ssn' => 'Ssn',
@@ -135,6 +135,11 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
         return $this->auth_key === $authKey;
     }
 
+    public static function findByUsername($userName)
+    {
+        return static::findOne(['username' => $userName]);
+    }
+
     public static function findByUserEmail($userEmail)
     {
         return static::findOne(['email' => $userEmail]);
@@ -149,7 +154,7 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
     {
         $date = date('Y-m-d H:i:s');
 
-        $token = new PersonalAccessTtoken();
+        $token = new PersonalAccessToken();
         $token->user_id = $user->id;
         $token->tokenable_type = 'App\Models\User';
         $token->tokenable_id = 1;
@@ -166,7 +171,7 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
     {
         $date = date('Y-m-d H:i:s');
 
-        $token = (new PersonalAccessTtoken())::find()->where(['id' => $user->id])->one();
+        $token = (new PersonalAccessToken())::find()->where(['id' => $user->id])->one();
         $token->last_used_at = $date;
         $token->expires_at = $date;
         $token->created_at = $date;
