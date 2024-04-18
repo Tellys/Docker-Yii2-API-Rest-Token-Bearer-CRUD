@@ -28,10 +28,8 @@ services:
       MYSQL_ROOT_PASSWORD: s3cr3t
       MYSQL_ROOT_AUTHENTICATION_METHOD: caching_sha2_password
     command: ['mysqld', '--default-authentication-plugin=mysql_native_password', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
-    #command: ['mysqld','--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci','--default-authentication-plugin=mysql_native_password']
     ports:
       - '3305:3305' #05 para evitar porta padrão e dar confusão
-      - '33060:33060'
     volumes:
       #- db_data:/var/lib/mysql
       - ./mysql:/var/lib/mysql:rw
