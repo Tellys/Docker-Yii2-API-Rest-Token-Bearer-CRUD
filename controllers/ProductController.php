@@ -24,7 +24,6 @@ class ProductController extends \yii\rest\ActiveController
     {
         $behaviors = parent::behaviors();
 
-        // Aplicar el filtro de autenticación BearerAuth a todas las acciones del controlador
         $behaviors['authenticator'] = [
             'class' => BearerAuth::class,
             //'except' => ['login'],
